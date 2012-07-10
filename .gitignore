@@ -1,4 +1,7 @@
 *.class
+*.iml
+*.ipr
+*.iws
 
 # Package Files #
 *.jar
