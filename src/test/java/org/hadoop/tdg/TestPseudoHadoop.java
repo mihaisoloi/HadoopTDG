@@ -12,8 +12,9 @@ import org.apache.hadoop.util.Progressable;
 import org.junit.*;
 
 import java.io.*;
-import java.net.URI;
 import java.net.URL;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -35,9 +36,8 @@ public class TestPseudoHadoop {
 
     private static final String DST = "/user/" + System.getProperty("user.name");
     private static final String HOME = System.getProperty("user.home");
-    private static final String DST_FILE = "/dir/test";
+    private static final String DST_FILE = DST+"/test";
     private static final String HOME_FILE = HOME + "/test";
-    private Configuration conf;
     private MiniDFSCluster cluster;
     private FileSystem fs;
 
@@ -50,27 +50,28 @@ public class TestPseudoHadoop {
         } finally {
             IOUtils.closeStream(f);
         }
-        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
+
     }
 
     @Before
     public void setUp() throws IOException {
-        conf = new Configuration();
+        Configuration configuration = new Configuration();
         if (System.getProperty("test.build.data") == null) {
             System.setProperty("test.build.data", "/tmp");
         }
-        cluster = new MiniDFSCluster(conf, 1, true, null);
+        cluster = new MiniDFSCluster(configuration, 1, true, null);
         fs = cluster.getFileSystem();
         copyFileWithProgress();
     }
 
     @After
     public void tearDown() throws IOException {
-        if (fs != null) fs.close();
-        if (cluster != null) cluster.shutdown();
+        checkNotNull(fs);
+        fs.close();
+        checkNotNull(cluster);
+        cluster.shutdown();
     }
 
-    @Ignore
     public void copyFileWithProgress() throws IOException {
         InputStream in = null;
         OutputStream out = null;
@@ -92,8 +93,10 @@ public class TestPseudoHadoop {
     }
 
     @Test
+    @Ignore("StackOverflowError with *-site.xml")
     public void readWithURLHandler() throws IOException {
-        printStream(new URL(DST_FILE).openStream());
+        URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
+        printStream(new URL(fs.getUri() + DST_FILE).openStream());
     }
 
     @Test
