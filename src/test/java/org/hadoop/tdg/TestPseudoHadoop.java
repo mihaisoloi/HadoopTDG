@@ -1,13 +1,16 @@
 package org.hadoop.tdg;
 
 import com.google.common.io.Files;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FsUrlStreamHandlerFactory;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionInputStream;
+import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.util.Progressable;
 import org.junit.*;
 
@@ -36,17 +39,23 @@ public class TestPseudoHadoop {
 
     private static final String DST = "/user/" + System.getProperty("user.name");
     private static final String HOME = System.getProperty("user.home");
-    private static final String DST_FILE = DST+"/test";
+    private static final String DST_FILE = DST + "/test";
     private static final String HOME_FILE = HOME + "/test";
+    private static final long SIZE = 4096l * 1000l;
     private MiniDFSCluster cluster;
     private FileSystem fs;
+    private static final Log LOG = LogFactory.getLog(TestPseudoHadoop.class);
 
     @BeforeClass
     public static void setUpClass() throws IOException {
         RandomAccessFile f = null;
         try {
+//            f = new File(HOME_FILE);
+//            FileOutputStream out = new FileOutputStream(f);
+//            out.write("content".getBytes("UTF-8"));
+//            out.flush();
             f = new RandomAccessFile(HOME_FILE, "rw");
-            f.setLength(4096 * 1000);
+            f.setLength(SIZE);
         } finally {
             IOUtils.closeStream(f);
         }
@@ -74,11 +83,12 @@ public class TestPseudoHadoop {
 
     public void copyFileWithProgress() throws IOException {
         InputStream in = null;
-        OutputStream out = null;
+        FSDataOutputStream out = null;
         try {
             in = new BufferedInputStream(new FileInputStream(HOME_FILE));
 //            FileSystem fs = FileSystem.get(URI.create(DST), conf);
-            out = fs.create(new Path(DST_FILE), new Progressable() {
+            Path p = new Path(DST_FILE);
+            out = fs.create(p, new Progressable() {
                 @Override
                 public void progress() {
                     System.out.print("~");
@@ -86,6 +96,7 @@ public class TestPseudoHadoop {
             });
 
             IOUtils.copyBytes(in, out, 4096, true);
+//            Assert.assertTrue(fs.getFileStatus(p).getLen() == );
         } finally {
             IOUtils.closeStream(in);
             IOUtils.closeStream(out);
@@ -103,7 +114,7 @@ public class TestPseudoHadoop {
     public void readWithFileSystem() throws IOException {
 //        FileSystem fs = FileSystem.get(URI.create(DST_FILE), conf);
         FSDataInputStream is = fs.open(new Path(DST_FILE));
-        is.seek(23);
+//        is.seek(23);
         printStream(is);
     }
 
@@ -121,4 +132,34 @@ public class TestPseudoHadoop {
         }
     }
 
+    @Test
+    public void listFiles() throws IOException {
+        FileStatus[] statuses = fs.listStatus(new Path(DST));
+        Path[] listedPaths = FileUtil.stat2Paths(statuses);
+        Assert.assertTrue(listedPaths.length == 1);
+        LOG.info(listedPaths[0]);
+    }
+
+    @Test
+    public void deleteFile() throws IOException {
+        Assert.assertTrue(fs.delete(new Path(DST_FILE), false));
+    }
+
+    @Test
+    public void writeAndReadBzipCompressed() throws IOException {
+        BZip2Codec codec = new BZip2Codec();
+        String ext = codec.getDefaultExtension();
+        Path p = new Path(DST_FILE + ext);
+        File f1 = new File(HOME_FILE);
+        File f2 = new File(HOME_FILE + ext);
+        //writing compressed to hdfs
+        CompressionOutputStream cout = codec.createOutputStream(fs.create(p));
+        IOUtils.copyBytes(new FileInputStream(f1), cout, 4096, false);
+        Assert.assertTrue(fs.getFileStatus(p).getPath().equals(new Path(fs.getUri().toString(), p.toUri().toString())));
+
+        //reading and checking if it's the same
+        CompressionInputStream cin = codec.createInputStream(fs.open(p));
+        IOUtils.copyBytes(cin, new FileOutputStream(f2), 4096, false);
+        Files.equal(f1, f2);
+    }
 }
