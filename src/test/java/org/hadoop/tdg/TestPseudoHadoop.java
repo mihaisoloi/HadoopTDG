@@ -7,11 +7,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
-import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.*;
 import org.apache.hadoop.io.compress.BZip2Codec;
 import org.apache.hadoop.io.compress.CompressionInputStream;
 import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.util.Progressable;
+import org.apache.hadoop.util.ReflectionUtils;
 import org.junit.*;
 
 import java.io.*;
@@ -37,6 +38,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class TestPseudoHadoop {
 
+    private static final String[] DATA = {"One, two, buckle my shoe",
+            "Three, four, shut the door",
+            "Five, six, pick up sticks",
+            "Seven, eight, lay them straight",
+            "Nine, ten, a big fat hen"};
     private static final String DST = "/user/" + System.getProperty("user.name");
     private static final String HOME = System.getProperty("user.home");
     private static final String DST_FILE = DST + "/test";
@@ -45,15 +51,16 @@ public class TestPseudoHadoop {
     private MiniDFSCluster cluster;
     private FileSystem fs;
     private static final Log LOG = LogFactory.getLog(TestPseudoHadoop.class);
+    private final Path p = new Path(DST_FILE);
 
     @BeforeClass
     public static void setUpClass() throws IOException {
         RandomAccessFile f = null;
         try {
-//            f = new File(HOME_FILE);
-//            FileOutputStream out = new FileOutputStream(f);
-//            out.write("content".getBytes("UTF-8"));
-//            out.flush();
+            /*f = new File(HOME_FILE);
+            FileOutputStream out = new FileOutputStream(f);
+            out.write("content".getBytes("UTF-8"));
+            out.flush();*/
             f = new RandomAccessFile(HOME_FILE, "rw");
             f.setLength(SIZE);
         } finally {
@@ -65,8 +72,8 @@ public class TestPseudoHadoop {
     @Before
     public void setUp() throws IOException {
         Configuration configuration = new Configuration();
-        if (System.getProperty("test.build.data") == null) {
-            System.setProperty("test.build.data", "/tmp");
+        if (System.getProperty("test.build.DATA") == null) {
+            System.setProperty("test.build.DATA", "/tmp");
         }
         cluster = new MiniDFSCluster(configuration, 1, true, null);
         fs = cluster.getFileSystem();
@@ -87,7 +94,6 @@ public class TestPseudoHadoop {
         try {
             in = new BufferedInputStream(new FileInputStream(HOME_FILE));
 //            FileSystem fs = FileSystem.get(URI.create(DST), conf);
-            Path p = new Path(DST_FILE);
             out = fs.create(p, new Progressable() {
                 @Override
                 public void progress() {
@@ -163,5 +169,72 @@ public class TestPseudoHadoop {
         CompressionInputStream cin = codec.createInputStream(dis);
         IOUtils.copyBytes(dis, new FileOutputStream(f2), 4096, false);
         Files.equal(f1, f2);
+    }
+
+    @Test
+    public void sequenceFileIO() throws IOException {
+        IntWritable key = new IntWritable();
+        Text value = new Text();
+        //write
+        SequenceFile.Writer writer = null;
+        try {
+            writer = SequenceFile.createWriter(fs, fs.getConf(), p, key.getClass(), value.getClass());
+            for (int i = 0; i < 100; i++) {
+                key.set(100 - i);
+                value.set(DATA[i % DATA.length]);
+                writer.append(key, value);
+            }
+        } finally {
+            IOUtils.closeStream(writer);
+        }
+        //read
+        SequenceFile.Reader reader = null;
+        try {
+            reader = new SequenceFile.Reader(fs, p, fs.getConf());
+            Writable readerKey = (Writable) ReflectionUtils.newInstance(reader.getKeyClass(), fs.getConf());
+            Writable readerValue = (Writable) ReflectionUtils.newInstance(reader.getValueClass(), fs.getConf());
+            long pos = reader.getPosition();
+            while (reader.next(readerKey, readerValue)) {
+                String syncSeen = reader.syncSeen() ? "*" : "";
+                System.out.printf("[%s%s]\t%s\t%s\n", pos, syncSeen, readerKey, readerValue);
+                pos = reader.getPosition();
+            }
+        } finally {
+            IOUtils.closeStream(writer);
+        }
+    }
+
+    /**
+     * sorted sequence file
+     *
+     * @throws IOException
+     */
+    @Test
+    public void mapFileIO() throws IOException {
+        LongWritable key = new LongWritable();
+        Text value = new Text();
+        MapFile.Writer writer = null;
+        try {
+            writer = new MapFile.Writer(fs.getConf(), fs, DST, key.getClass(), value.getClass());
+            for (int i = 0; i < 100; i++) {
+                key.set(i);
+                value.set(DATA[i % DATA.length]);
+                writer.append(key, value);
+            }
+        } finally {
+            IOUtils.closeStream(writer);
+        }
+
+        MapFile.Reader reader = null;
+        try {
+            reader = new MapFile.Reader(fs, DST, fs.getConf());
+            LongWritable readerKey = (LongWritable) ReflectionUtils.newInstance(reader.getKeyClass(), fs.getConf());
+            Text readerValue = (Text) ReflectionUtils.newInstance(reader.getValueClass(), fs.getConf());
+            while (reader.next(readerKey, readerValue)) {
+                System.out.printf("%s\t%s\n", readerKey, readerValue);
+            }
+        } finally {
+            IOUtils.closeStream(writer);
+        }
     }
 }
