@@ -1,8 +1,12 @@
 package org.zookeeper.tdg;
 
+import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.CuratorFrameworkFactory;
+import com.netflix.curator.retry.RetryOneTime;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.omg.CORBA.TIMEOUT;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -23,24 +27,17 @@ import java.util.concurrent.CountDownLatch;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class ConnectionWatcher implements Watcher {
-    private static final int SESSION_TIMEOUT = 5000;
+public class CuratorConnection {
+    private static final int TIMEOUT = 1000;
 
-    protected ZooKeeper zk;
-    private CountDownLatch connectedSignal = new CountDownLatch(1);
-
-    @Override
-    public void process(WatchedEvent watchedEvent) {
-        if (watchedEvent.getState() == Event.KeeperState.SyncConnected)
-            connectedSignal.countDown();
-    }
+    protected CuratorFramework client;
 
     public void connect(String hosts) throws IOException, InterruptedException {
-        zk = new ZooKeeper(hosts, SESSION_TIMEOUT, this);
-        connectedSignal.await();
+        client = CuratorFrameworkFactory.newClient(hosts, new RetryOneTime(TIMEOUT));
+        client.start();
     }
 
-    public void close() throws InterruptedException {
-        zk.close();
+    public void close() {
+        client.close();
     }
 }

@@ -1,5 +1,6 @@
 package org.zookeeper.app;
 
+import com.netflix.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -23,7 +24,7 @@ import java.io.UnsupportedEncodingException;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class ConfigWatcher implements Watcher {
+public class ConfigWatcher implements CuratorWatcher {
     private ActiveKeyValueStore store;
 
     public ConfigWatcher(String hosts) throws IOException, InterruptedException {
@@ -31,14 +32,14 @@ public class ConfigWatcher implements Watcher {
         store.connect(hosts);
     }
 
-    public void displayConfig() throws InterruptedException, UnsupportedEncodingException, KeeperException {
+    public void displayConfig() throws Exception{
         String value = store.read(ConfigUpdater.PATH, this);
         System.out.printf("Read %s as %s\n", ConfigUpdater.PATH, value);
     }
 
     @Override
     public void process(WatchedEvent event) {
-        if (event.getType() == Event.EventType.NodeDataChanged)
+        if (event.getType() == Watcher.Event.EventType.NodeDataChanged)
             try {
                 displayConfig();
             } catch (InterruptedException e) {
@@ -46,16 +47,10 @@ public class ConfigWatcher implements Watcher {
                 Thread.currentThread().interrupt();
             } catch (KeeperException e) {
                 System.err.printf("KeeperException: %s. Exiting.\n", e);
-            } catch (UnsupportedEncodingException e) {
+            } catch (Exception e) {
                 System.err.println("Unsupported. Exiting.");
                 Thread.currentThread().interrupt();
             }
     }
 
-    public static void main(String[] args) throws InterruptedException, KeeperException, IOException {
-        ConfigWatcher configWatcher = new ConfigWatcher("localhost");
-        configWatcher.displayConfig();
-
-        Thread.sleep(Long.MAX_VALUE);
-    }
 }

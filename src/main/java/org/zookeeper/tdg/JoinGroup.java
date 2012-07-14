@@ -1,11 +1,5 @@
 package org.zookeeper.tdg;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs;
-
-import java.io.IOException;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -22,19 +16,11 @@ import java.io.IOException;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class JoinGroup extends ConnectionWatcher {
+public class JoinGroup extends CuratorConnection {
 
-    public void join(String groupName, String memberName) throws InterruptedException, KeeperException {
+    public void join(String groupName, String memberName) throws Exception {
         String path = "/" + groupName + "/" + memberName;
-        String createdPath = zk.create(path,null, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        String createdPath = client.create().forPath(path);
         System.out.println("Created " + createdPath);
-    }
-
-    public static void main(String[] args) throws InterruptedException, KeeperException, IOException {
-        JoinGroup joinGroup = new JoinGroup();
-        joinGroup.connect(args[0]);
-        joinGroup.join(args[1],args[2]);
-
-        Thread.sleep(Long.MAX_VALUE);
     }
 }

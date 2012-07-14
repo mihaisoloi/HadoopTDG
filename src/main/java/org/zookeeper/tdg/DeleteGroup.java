@@ -20,27 +20,20 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class DeleteGroup extends ConnectionWatcher {
+public class DeleteGroup extends CuratorConnection {
 
-    public void delete(String groupName) throws KeeperException, InterruptedException {
+    public void delete(String groupName) throws Exception {
         String path = "/" + groupName;
 
         try {
-            List<String> children = zk.getChildren(path, false);
+            List<String> children = client.getChildren().forPath(path);
             for (String child : children) {
-                zk.delete(path + "/" + child, -1);
+                client.delete().withVersion(-1).forPath(path + "/" + child);
             }
-            zk.delete(path, -1);
+            client.delete().withVersion(-1).forPath(path);
         } catch (KeeperException.NoNodeException e) {
             System.out.printf("Group %s does not exist\n", groupName);
             System.exit(1);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        DeleteGroup deleteGroup = new DeleteGroup();
-        deleteGroup.connect(args[0]);
-        deleteGroup.delete(args[1]);
-        deleteGroup.close();
     }
 }

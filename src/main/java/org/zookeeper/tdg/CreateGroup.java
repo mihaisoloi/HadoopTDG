@@ -2,9 +2,6 @@ package org.zookeeper.tdg;
 
 import org.apache.zookeeper.*;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -21,39 +18,14 @@ import java.util.concurrent.CountDownLatch;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class CreateGroup  implements Watcher {
+public class CreateGroup  extends CuratorConnection {
 
-    private static final int SESSION_TIMEOUT = 5000;
-    
-    private ZooKeeper zk;
-    private CountDownLatch connectedSignal = new CountDownLatch(1);
-    
-    @Override
-    public void process(WatchedEvent watchedEvent) {
-        if(watchedEvent.getState() == Event.KeeperState.SyncConnected)
-            connectedSignal.countDown();
-    }
-    
-    public void connect(String hosts) throws IOException, InterruptedException {
-        zk = new ZooKeeper(hosts,SESSION_TIMEOUT,this);
-        connectedSignal.await();
-    }
-    
-    public void create(String groupName) throws KeeperException, InterruptedException {
+    public void create(String groupName) throws Exception {
         String path = "/" +groupName;
-        String createdPath = zk.create(path,null/*data*/, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        String createdPath = client.create()
+                .withMode(CreateMode.PERSISTENT)
+                .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                .forPath(path);
         System.out.println("Created "+ createdPath);
     }
-    
-    public void close() throws InterruptedException{
-        zk.close();
-    }
-
-    public static void main(String[] args) throws InterruptedException, IOException, KeeperException {
-        CreateGroup createGroup = new CreateGroup();
-        createGroup.connect(args[0]);
-        createGroup.create(args[1]);
-        createGroup.close();
-    }
-    
 }

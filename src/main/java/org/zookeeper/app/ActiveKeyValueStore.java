@@ -1,13 +1,11 @@
 package org.zookeeper.app;
 
+import com.netflix.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
-import org.zookeeper.tdg.ConnectionWatcher;
-
-import java.io.UnsupportedEncodingException;
+import org.zookeeper.tdg.CuratorConnection;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -25,20 +23,23 @@ import java.io.UnsupportedEncodingException;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class ActiveKeyValueStore extends ConnectionWatcher {
+public class ActiveKeyValueStore extends CuratorConnection {
 
     public static final String CHARSET = "UTF-8";
 
-    public void write(String path, String value) throws InterruptedException, KeeperException, UnsupportedEncodingException {
-        Stat stat = zk.exists(path, false);
+    public void write(String path, String value) throws Exception {
+        Stat stat = client.checkExists().forPath(path);
         if (stat == null)
-            zk.create(path, value.getBytes(CHARSET), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+            client.create()
+                    .withMode(CreateMode.PERSISTENT)
+                    .withACL(ZooDefs.Ids.OPEN_ACL_UNSAFE)
+                    .forPath(path, value.getBytes(CHARSET));
         else
-            zk.setData(path, value.getBytes(CHARSET), -1);
+            client.setData().forPath(path, value.getBytes(CHARSET));
     }
 
-    public String read(String path, Watcher watcher) throws InterruptedException, KeeperException, UnsupportedEncodingException {
-        byte[] data = zk.getData(path,watcher,null);
+    public String read(String path, CuratorWatcher watcher) throws Exception {
+        byte[] data = client.getData().usingWatcher(watcher).forPath(path);
         return new String(data,CHARSET);
     }
 }

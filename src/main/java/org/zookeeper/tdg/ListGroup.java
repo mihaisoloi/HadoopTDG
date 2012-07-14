@@ -2,7 +2,6 @@ package org.zookeeper.tdg;
 
 import org.apache.zookeeper.KeeperException;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -21,13 +20,13 @@ import java.util.List;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class ListGroup extends ConnectionWatcher {
+public class ListGroup extends CuratorConnection {
 
-    public void list(String groupName) throws InterruptedException, KeeperException {
+    public void list(String groupName) throws Exception {
         String path = "/" + groupName;
 
         try {
-            List<String> children = zk.getChildren(path, false);
+            List<String> children =  client.getChildren().forPath(path);
             if (children.isEmpty()) {
                 System.out.printf("No members in group %s\n", groupName);
                 System.exit(1);
@@ -38,12 +37,5 @@ public class ListGroup extends ConnectionWatcher {
             System.out.printf("Group %s does not exist\n", groupName);
             System.exit(1);
         }
-    }
-
-    public static void main(String[] args) throws InterruptedException, KeeperException, IOException {
-        ListGroup listGroup = new ListGroup();
-        listGroup.connect(args[0]);
-        listGroup.list(args[1]);
-        listGroup.close();
     }
 }

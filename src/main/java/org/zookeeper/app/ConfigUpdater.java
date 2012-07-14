@@ -1,9 +1,6 @@
 package org.zookeeper.app;
 
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +20,7 @@ import java.util.concurrent.TimeUnit;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-public class ConfigUpdater {
+public class ConfigUpdater implements Runnable {
     public static final String PATH = "/config";
 
     private ActiveKeyValueStore store;
@@ -34,17 +31,19 @@ public class ConfigUpdater {
         store.connect(hosts);
     }
 
-    public void run() throws InterruptedException, UnsupportedEncodingException, KeeperException {
-        while(true){
-            String value = random.nextInt(100) + "";
-            store.write(PATH, value);
-            System.out.printf("Set %s to %s\n",PATH,value);
-            TimeUnit.SECONDS.sleep(random.nextInt(10));
+    @Override
+    public void run() {
+        try {
+            for (int i = 0; i < 3; i++) {
+                String value = random.nextInt(100) + "";
+                store.write(PATH, value);
+                System.out.printf("Set %s to %s\n", PATH, value);
+                TimeUnit.SECONDS.sleep(random.nextInt(10));
+            }
+        } catch (Exception e) {
+            //do nothing
+        } finally {
+            store.close();
         }
-    }
-
-    public static void main(String[] args) throws InterruptedException, KeeperException, IOException {
-        ConfigUpdater configUpdater = new ConfigUpdater("localhost");
-        configUpdater.run();
     }
 }
