@@ -16,15 +16,20 @@
  */
 package org.zookeeper.app;
 
+import com.netflix.curator.framework.CuratorFramework;
 import com.netflix.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
-import org.zookeeper.tdg.CuratorConnection;
+import org.zookeeper.tdg.ZkTestUtils;
 
-public class ActiveKeyValueStore extends CuratorConnection {
+public class ActiveKeyValueStore extends ZkTestUtils{
 
     public static final String CHARSET = "UTF-8";
+
+    public ActiveKeyValueStore(CuratorFramework client) {
+        super(client);
+    }
 
     public void write(String path, String value) throws Exception {
         Stat stat = client.checkExists().forPath(path);

@@ -16,72 +16,75 @@
  */
 package org.zookeeper.tdg;
 
+import com.google.common.base.Preconditions;
 import com.netflix.curator.test.TestingServer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.apache.tools.ant.types.Assertions;
+import org.junit.*;
 import org.zookeeper.app.ConfigUpdater;
 import org.zookeeper.app.ConfigWatcher;
+
+import java.io.IOException;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class ZookeeperTest {
     public static final int TIMEOUT = 1000;
     public static final String PATH = "zoo", CONNECTION = "localhost";
+    public static ZkTestUtils utils;
+    public static TestingServer server;
 
     @BeforeClass
     public static void setUpEnvironment() throws Exception {
-        new TestingServer(2181);
+        server = new TestingServer(2181);
+        try {
+            utils =  new ZkTestUtils();
+            utils.getClient().start();
+        } catch (IOException e) {
+            //do nothing
+        }
     }
 
-    @Before
-    public void setUp() throws Exception {
-        CreateGroup createGroup = new CreateGroup();
-        createGroup.connect(CONNECTION);
-        createGroup.create(PATH);
-        createGroup.close();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        DeleteGroup deleteGroup = new DeleteGroup();
-        deleteGroup.connect(CONNECTION);
-        deleteGroup.delete(PATH);
-        deleteGroup.close();
+    @AfterClass
+    public static void tearDownEnvironment() throws IOException {
+        utils.getClient().close();
+        server.close();
     }
 
     @Test
-    public void testListGroup() throws Exception {
+    public void testGroups() throws Exception {
+        utils.createGroup(PATH);
         new Thread(new Runnable() {
             @Override
             public void run() {
 
                 try {
-                    JoinGroup joinGroup = new JoinGroup();
-                    joinGroup.connect(CONNECTION);
-                    joinGroup.join(PATH, "mihai");
+                    utils.joinGroup(PATH, "mihai");
                     Thread.sleep(TIMEOUT);
                 } catch (Exception e) {
                     //do nothing
                 }
             }
         }).start();
-        ListGroup listGroup = new ListGroup();
-        listGroup.connect(CONNECTION);
-        listGroup.list(PATH);
-        listGroup.close();
+        assertNotSame(Collections.emptyList(), utils.listGroup(PATH));
+        assertTrue(utils.deleteGroup(PATH));
     }
 
     @Test
     public void testConfig() throws Exception {
-        Thread t = new Thread(new ConfigUpdater(CONNECTION));
+        Thread t = new Thread(new ConfigUpdater(utils.getClient()));
         t.start();
 
         Thread.sleep(TIMEOUT);
 
-        ConfigWatcher configWatcher = new ConfigWatcher(CONNECTION);
+        ConfigWatcher configWatcher = new ConfigWatcher(utils.getClient());
         configWatcher.displayConfig();
 
         while (t.isAlive())
             Thread.sleep(TIMEOUT);
+
+        assertEquals(3,configWatcher.readNumber);
     }
 }

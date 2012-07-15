@@ -16,24 +16,23 @@
  */
 package org.zookeeper.app;
 
+import com.netflix.curator.framework.CuratorFramework;
 import com.netflix.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
-import java.io.IOException;
-
 public class ConfigWatcher implements CuratorWatcher {
     private ActiveKeyValueStore store;
-
-    public ConfigWatcher(String hosts) throws IOException, InterruptedException {
-        store = new ActiveKeyValueStore();
-        store.connect(hosts);
+    public static int readNumber;
+    public ConfigWatcher(CuratorFramework client) {
+        this.store = new ActiveKeyValueStore(client);
     }
 
-    public void displayConfig() throws Exception{
+    public void displayConfig() throws Exception {
         String value = store.read(ConfigUpdater.PATH, this);
         System.out.printf("Read %s as %s\n", ConfigUpdater.PATH, value);
+        readNumber++;
     }
 
     @Override

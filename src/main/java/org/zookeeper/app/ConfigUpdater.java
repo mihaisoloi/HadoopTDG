@@ -16,6 +16,9 @@
  */
 package org.zookeeper.app;
 
+import com.netflix.curator.framework.CuratorFramework;
+import org.zookeeper.tdg.ZkTestUtils;
+
 import java.io.IOException;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -26,9 +29,8 @@ public class ConfigUpdater implements Runnable {
     private ActiveKeyValueStore store;
     private Random random = new Random();
 
-    public ConfigUpdater(String hosts) throws IOException, InterruptedException {
-        store = new ActiveKeyValueStore();
-        store.connect(hosts);
+    public ConfigUpdater(CuratorFramework client) {
+        this.store = new ActiveKeyValueStore(client);
     }
 
     @Override
@@ -42,8 +44,6 @@ public class ConfigUpdater implements Runnable {
             }
         } catch (Exception e) {
             //do nothing
-        } finally {
-            store.close();
         }
     }
 }
