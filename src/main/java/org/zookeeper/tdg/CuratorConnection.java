@@ -19,13 +19,8 @@ package org.zookeeper.tdg;
 import com.netflix.curator.framework.CuratorFramework;
 import com.netflix.curator.framework.CuratorFrameworkFactory;
 import com.netflix.curator.retry.RetryOneTime;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.omg.CORBA.TIMEOUT;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 public class CuratorConnection {
     private static final int TIMEOUT = 1000;

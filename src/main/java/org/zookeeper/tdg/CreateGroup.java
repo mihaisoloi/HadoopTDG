@@ -16,7 +16,8 @@
  */
 package org.zookeeper.tdg;
 
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs;
 
 public class CreateGroup  extends CuratorConnection {
 

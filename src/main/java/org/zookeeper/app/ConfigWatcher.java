@@ -22,7 +22,6 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 public class ConfigWatcher implements CuratorWatcher {
     private ActiveKeyValueStore store;

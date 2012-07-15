@@ -18,7 +18,6 @@ package org.zookeeper.app;
 
 import com.netflix.curator.framework.api.CuratorWatcher;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.Stat;
 import org.zookeeper.tdg.CuratorConnection;

@@ -26,8 +26,6 @@ import org.apache.hadoop.mapred.Reporter;
 import java.io.IOException;
 import java.util.Iterator;
 
-import static org.mockito.Mockito.verify;
-
 public class MaxTemperatureReducer extends MapReduceBase implements Reducer<Text, IntWritable, Text, IntWritable> {
     @Override
     public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output, Reporter reporter) throws IOException {
