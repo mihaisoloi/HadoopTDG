@@ -1,13 +1,3 @@
-package org.zookeeper.tdg;
-
-import com.netflix.curator.test.TestingServer;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.zookeeper.app.ConfigUpdater;
-import org.zookeeper.app.ConfigWatcher;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -24,6 +14,16 @@ import org.zookeeper.app.ConfigWatcher;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.zookeeper.tdg;
+
+import com.netflix.curator.test.TestingServer;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.zookeeper.app.ConfigUpdater;
+import org.zookeeper.app.ConfigWatcher;
+
 public class ZookeeperTest {
     public static final int TIMEOUT = 1000;
     public static final String PATH = "zoo", CONNECTION = "localhost";
@@ -81,7 +81,7 @@ public class ZookeeperTest {
         ConfigWatcher configWatcher = new ConfigWatcher(CONNECTION);
         configWatcher.displayConfig();
 
-        while(t.isAlive())
+        while (t.isAlive())
             Thread.sleep(TIMEOUT);
     }
 }

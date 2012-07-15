@@ -1,12 +1,3 @@
-package org.zookeeper.app;
-
-import com.netflix.curator.framework.api.CuratorWatcher;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs;
-import org.apache.zookeeper.data.Stat;
-import org.zookeeper.tdg.CuratorConnection;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -23,6 +14,15 @@ import org.zookeeper.tdg.CuratorConnection;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.zookeeper.app;
+
+import com.netflix.curator.framework.api.CuratorWatcher;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs;
+import org.apache.zookeeper.data.Stat;
+import org.zookeeper.tdg.CuratorConnection;
+
 public class ActiveKeyValueStore extends CuratorConnection {
 
     public static final String CHARSET = "UTF-8";

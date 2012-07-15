@@ -1,13 +1,3 @@
-package org.zookeeper.app;
-
-import com.netflix.curator.framework.api.CuratorWatcher;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -24,6 +14,16 @@ import java.io.UnsupportedEncodingException;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.zookeeper.app;
+
+import com.netflix.curator.framework.api.CuratorWatcher;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
 public class ConfigWatcher implements CuratorWatcher {
     private ActiveKeyValueStore store;
 

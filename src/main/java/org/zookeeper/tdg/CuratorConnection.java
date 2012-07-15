@@ -1,16 +1,3 @@
-package org.zookeeper.tdg;
-
-import com.netflix.curator.framework.CuratorFramework;
-import com.netflix.curator.framework.CuratorFrameworkFactory;
-import com.netflix.curator.retry.RetryOneTime;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.omg.CORBA.TIMEOUT;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -27,6 +14,19 @@ import java.util.concurrent.CountDownLatch;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.zookeeper.tdg;
+
+import com.netflix.curator.framework.CuratorFramework;
+import com.netflix.curator.framework.CuratorFrameworkFactory;
+import com.netflix.curator.retry.RetryOneTime;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+import org.omg.CORBA.TIMEOUT;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+
 public class CuratorConnection {
     private static final int TIMEOUT = 1000;
 

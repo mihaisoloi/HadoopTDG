@@ -1,9 +1,3 @@
-package org.zookeeper.app;
-
-import java.io.IOException;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements. See the NOTICE file distributed with
@@ -20,6 +14,12 @@ import java.util.concurrent.TimeUnit;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.zookeeper.app;
+
+import java.io.IOException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
 public class ConfigUpdater implements Runnable {
     public static final String PATH = "/config";
 
