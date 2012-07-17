@@ -10,7 +10,19 @@
     <properties>
         <jersey.version>1.13</jersey.version>
         <hadoop.version>1.0.3</hadoop.version>
+        <hbase.version>0.92.1</hbase.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>lucene-repository</id>
+            <name>Lucene Maven</name>
+            <url>https://repository.apache.org/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -44,6 +56,11 @@
             <version>${jersey.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-jaxrs</artifactId>
+            <version>1.8.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-test</artifactId>
             <scope>test</scope>
@@ -53,6 +70,18 @@
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-core</artifactId>
             <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <version>${hbase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase</artifactId>
+            <type>test-jar</type>
+            <version>${hbase.version}</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

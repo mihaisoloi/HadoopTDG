@@ -1,0 +1,6 @@
+<configuration>
+    <property>
+        <name>hbase.coprocessor.master.classes</name>
+        <value>org.hbase.tdg.MasterObserverExample</value>
+    </property>
+</configuration>
